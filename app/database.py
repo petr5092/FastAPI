@@ -1,18 +1,35 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+import os
+from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy.orm import as_declarative
+import datetime
+from confiq import settings
 
-class Base(DeclarativeBase):
-    pass
+def get_current_datetime():
+    return datetime.datetime.utcnow()
 
 
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_USER = "postgres"
-DB_PASS = "postgres"
-DB_NAME = "postgres"
+@as_declarative()
+class Base:
+    id = Column(
+        Integer,
+        primary_key=True,
+    )
 
-DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    created_at = Column(
+        DateTime,
+        default=get_current_datetime,
+    )
 
-engine = create_async_engine(DATABASE_URL)
+    updated_at = Column(
+        DateTime,
+        default=get_current_datetime,
+        onupdate=get_current_datetime,
+    )
 
+
+engine = create_async_engine(settings.DATABASE_URL)
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
